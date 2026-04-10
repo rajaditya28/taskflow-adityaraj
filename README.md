@@ -75,8 +75,8 @@ A production-shaped task management system with authentication, relational data,
 **Prerequisites:** Docker and Docker Compose (nothing else required).
 
 ```bash
-git clone https://github.com/rishabhsharma-go/Greening-India-Assingment
-cd taskflow
+git clone https://github.com/rajaditya28/taskflow-adityaraj
+cd taskflow-adityaraj
 cp .env.example .env
 docker compose up --build
 ```
