@@ -2,3 +2,6 @@
 frontend/node_modules/
 frontend/dist/
 backend/server
+ui-tests/node_modules/
+ui-tests/test-results/
+test-results/
