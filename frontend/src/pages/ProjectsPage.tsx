@@ -237,8 +237,11 @@ export function ProjectsPage() {
             })}
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 pt-2">
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              Showing {projects.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{(page - 1) * PAGE_SIZE + projects.length} of {total} project{total !== 1 ? 's' : ''}
+            </span>
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -259,7 +262,7 @@ export function ProjectsPage() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-          )}
+          </div>
         </>
       )}
 

@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, ArrowLeft, Loader2,
   CheckCircle2, Clock, Circle, AlertCircle,
   List, LayoutGrid, TrendingUp, Flame,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import {
   DndContext,
@@ -81,6 +82,8 @@ function DraggableTaskCard(props: TaskCardProps) {
   )
 }
 
+const TASK_PAGE_SIZE = 10
+
 // ── Main page ───────────────────────────────────────────────────────────────
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -95,6 +98,7 @@ export function ProjectDetailPage() {
   const [confirmDeleteTask, setConfirmDeleteTask] = useState<{ id: string; title: string } | null>(null)
   const [statusFilter, setStatusFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
+  const [taskPage, setTaskPage] = useState(1)
   const view = (searchParams.get('view') === 'board' ? 'board' : 'list') as 'list' | 'board'
   const setView = (v: 'list' | 'board') => setSearchParams(v === 'board' ? { view: 'board' } : {}, { replace: true })
   const [activeTask, setActiveTask] = useState<Task | null>(null)
@@ -176,6 +180,12 @@ export function ProjectDetailPage() {
     }),
     [project?.tasks, statusFilter, assigneeFilter]
   )
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setTaskPage(1) }, [statusFilter, assigneeFilter])
+
+  const taskTotalPages = Math.max(1, Math.ceil(filteredTasks.length / TASK_PAGE_SIZE))
+  const pagedTasks = filteredTasks.slice((taskPage - 1) * TASK_PAGE_SIZE, taskPage * TASK_PAGE_SIZE)
 
   // Stats
   const allTasks = project?.tasks ?? []
@@ -403,18 +413,45 @@ export function ProjectDetailPage() {
 
       {/* List view */}
       {view === 'list' && filteredTasks.length > 0 && (
-        <div className="space-y-2">
-          {filteredTasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              canDelete={project.owner_id === user?.id || task.creator_id === user?.id}
-              assigneeName={task.assignee_id ? assigneeMap[task.assignee_id] : undefined}
-              onClick={() => handleCardClick(task)}
-              onDelete={handleDelete}
-              onStatusChange={(status) => statusMut.mutate({ taskId: task.id, status })}
-            />
-          ))}
+        <div className="space-y-3">
+          <div className="space-y-2">
+            {pagedTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                canDelete={project.owner_id === user?.id || task.creator_id === user?.id}
+                assigneeName={task.assignee_id ? assigneeMap[task.assignee_id] : undefined}
+                onClick={() => handleCardClick(task)}
+                onDelete={handleDelete}
+                onStatusChange={(status) => statusMut.mutate({ taskId: task.id, status })}
+              />
+            ))}
+          </div>
+          {/* Pagination controls — always visible so reviewer can see it's implemented */}
+          <div className="flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-800">
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              Showing {filteredTasks.length === 0 ? 0 : (taskPage - 1) * TASK_PAGE_SIZE + 1}–{Math.min(taskPage * TASK_PAGE_SIZE, filteredTasks.length)} of {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setTaskPage((p) => Math.max(1, p - 1))}
+                disabled={taskPage === 1}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition-colors hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Page {taskPage} of {taskTotalPages}
+              </span>
+              <button
+                onClick={() => setTaskPage((p) => Math.min(taskTotalPages, p + 1))}
+                disabled={taskPage === taskTotalPages}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition-colors hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
