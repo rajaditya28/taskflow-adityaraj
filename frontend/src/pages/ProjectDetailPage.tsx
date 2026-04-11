@@ -26,6 +26,7 @@ import { TaskModal } from '@/components/TaskModal'
 import { TaskDetailModal } from '@/components/TaskDetailModal'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { TaskCard, type TaskCardProps } from '@/components/TaskCard'
+import { BoardViewHint, useBoardHint } from '@/components/BoardViewHint'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const STATUS_COLS: { key: TaskStatus; label: string; icon: React.ElementType; color: string; bg: string; ring: string }[] = [
@@ -97,6 +98,7 @@ export function ProjectDetailPage() {
   const view = (searchParams.get('view') === 'board' ? 'board' : 'list') as 'list' | 'board'
   const setView = (v: 'list' | 'board') => setSearchParams(v === 'board' ? { view: 'board' } : {}, { replace: true })
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const { visible: hintVisible, dismiss: dismissHint } = useBoardHint()
 
   // Real-time SSE subscription
   useProjectEvents(id!)
@@ -335,29 +337,41 @@ export function ProjectDetailPage() {
           <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
             {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
           </span>
-          <div className="flex overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => setView('list')}
-              title="List view"
-              className={`flex h-8 w-8 items-center justify-center transition-colors ${
-                view === 'list'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-gray-500 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-              }`}
-            >
-              <List className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={() => setView('board')}
-              title="Board view"
-              className={`flex h-8 w-8 items-center justify-center border-l border-gray-200 transition-colors dark:border-gray-700 ${
-                view === 'board'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-gray-500 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-              }`}
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-            </button>
+          <div className="relative">
+            <div className="flex overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setView('list')}
+                title="List view"
+                className={`flex h-8 w-8 items-center justify-center transition-colors ${
+                  view === 'list'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white text-gray-500 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                <List className="h-3.5 w-3.5" />
+              </button>
+              <div className="relative">
+                {hintVisible && view === 'list' && (
+                  <span className="pointer-events-none absolute inset-0 rounded-none">
+                    <span className="absolute inset-0 animate-ping rounded-sm bg-indigo-400 opacity-40" />
+                  </span>
+                )}
+                <button
+                  onClick={() => { setView('board'); dismissHint() }}
+                  title="Board view"
+                  className={`relative flex h-8 w-8 items-center justify-center border-l border-gray-200 transition-colors dark:border-gray-700 ${
+                    view === 'board'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-white text-gray-500 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                  }`}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+            {hintVisible && view === 'list' && (
+              <BoardViewHint onDismiss={dismissHint} />
+            )}
           </div>
         </div>
       </div>

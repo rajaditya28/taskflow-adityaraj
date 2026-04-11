@@ -133,8 +133,6 @@ export function ProjectsPage() {
     setConfirmDelete(p)
   }
 
-  const firstName = user?.name?.split(' ')[0]
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -142,7 +140,7 @@ export function ProjectsPage() {
         <div>
           <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">Good to see you,</p>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            {firstName} 👋
+            {user?.name} 👋
           </h1>
           {total > 0 && (
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
